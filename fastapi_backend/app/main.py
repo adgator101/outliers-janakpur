@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from app.models.user_model import User
 from app.models.incident_model import Incident
+from app.models.region_model import Region
 from app.routes.user_route import router as user_router
 from app.routes.incident_route import router as incident_router
 from typing import cast
@@ -21,7 +22,7 @@ DB_NAME = os.getenv("DB_NAME")
 async def lifespan(app: FastAPI):
     client = AsyncIOMotorClient(MONGODB_URI)
     db = client[cast(str, DB_NAME)]
-    await init_beanie(database=db, document_models=[User, Incident])
+    await init_beanie(database=db, document_models=[User, Incident, Region])
     
     yield  # app is ready
 

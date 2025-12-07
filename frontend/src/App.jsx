@@ -3,6 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import MapboxMap from "./pages/MapboxMap";
 import Login from "./pages/user/Login";
 import Register from "./pages/user/Register";
+import DashboardLayout from "./components/layouts/DashboardLayout";
+import Dashboard from "./pages/dashboard/Dashboard";
+import MapDashboard from "./pages/dashboard/MapDashboard";
+import IncidentManagement from "./pages/dashboard/IncidentManagement";
+import DashboardMap from "./pages/dashboard/DashboardMap";
 import { authAPI } from "./utils/api";
 
 // Protected Route wrapper
@@ -16,6 +21,21 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Dashboard Routes - Protected */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+            <Route index element={<Dashboard />} />
+            <Route path="map" element={<DashboardMap />} />
+            <Route path="incidents" element={<IncidentManagement />} />
+        </Route>
+
         <Route 
           path="/mapbox" 
           element={

@@ -23,3 +23,5 @@ class UserLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    email: EmailStr
+    role: Role

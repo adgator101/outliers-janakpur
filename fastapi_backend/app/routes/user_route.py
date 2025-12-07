@@ -28,4 +28,9 @@ async def login_user(user: UserLogin):
     token_data = {"user_id": str(user_doc.id), "email": user_doc.email, "role": user_doc.role}
     access_token = create_access_token(token_data)
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "email": user_doc.email,
+        "role": user_doc.role
+    }
