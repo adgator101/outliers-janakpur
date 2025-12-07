@@ -4,6 +4,7 @@ import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { PenTool } from 'lucide-react';
 import RegionDetailsPanel from "../components/RegionDetailsPanel";
 import IncidentReportForm from "../components/IncidentReportForm";
 import { regionAPI, authAPI } from "../utils/api";
@@ -217,7 +218,7 @@ function MapboxMap() {
           </div>
           <button
             onClick={handleLogout}
-            className="bg-red-600 backdrop-blur-md shadow-lg rounded-xl px-4 py-2.5 text-sm font-semibold text-white border-0 hover:bg-red-700 transition-all active:scale-95 hover:shadow-xl"
+            className="bg-white backdrop-blur-md shadow-lg rounded-xl px-4 py-2.5 text-sm font-semibold text-red-600 border-2 border-red-600 hover:bg-red-50 transition-all active:scale-95 hover:shadow-xl"
           >
             Logout
           </button>
@@ -248,8 +249,8 @@ function MapboxMap() {
               <span className="mt-0.5">Red = Dangerous (0-3)</span>
             </li>
             <li className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600 font-bold text-[10px]">
-                →
+              <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
+                <PenTool className="w-3 h-3" />
               </div>
               <span className="mt-0.5">Draw on map to report</span>
             </li>
