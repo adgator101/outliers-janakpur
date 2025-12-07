@@ -113,7 +113,7 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-white p-6">
         <p className="text-red-600 mb-4">{error}</p>
-        <button onClick={onClose} className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-all shadow-sm hover:shadow-md">
+        <button onClick={onClose} className="px-4 py-2 bg-white text-red-600 border-2 border-red-600 hover:bg-red-50 rounded-lg font-medium transition-all shadow-sm hover:shadow-md">
           Close
         </button>
       </div>
@@ -126,7 +126,7 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
         /* Full-width Incident Details View */
         <>
           {/* Header */}
-          <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-white">
+          <div className="px-6 py-4 border-b bg-white">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 flex-1">
                 <button
@@ -276,7 +276,7 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
                       <button
                         type="submit"
                         disabled={submittingComment || !newIncidentComment.trim()}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        className="px-4 py-2 bg-white text-blue-600 border-2 border-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       >
                         Post
                       </button>
@@ -291,7 +291,7 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
         /* Region View */
         <>
           {/* Header */}
-          <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-white">
+          <div className="px-6 py-4 border-b bg-white">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-gray-900">{region.name}</h2>
@@ -312,15 +312,44 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            {/* Safety Score - Compact */}
-            <div className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border border-gray-200 mb-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-700">Safety Score</h3>
+            {/* Safety Score - Enhanced with new metrics */}
+            <div className="bg-blue-50 p-5 rounded-xl border border-blue-200 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-gray-700">Safety Assessment</h3>
                 <div className="flex items-baseline gap-1">
                   <span className={`text-2xl font-bold ${getSafetyScoreColor(region.safety_score)}`}>
                     {region.safety_score.toFixed(1)}
                   </span>
                   <span className="text-gray-500 text-xs">/ 10</span>
+                </div>
+              </div>
+              
+              {/* New Scoring Metrics */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-600">Raw Score</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {region.raw_score?.toFixed(2) || '0.00'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-600">Normalized (0-100)</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {region.normalized_score?.toFixed(1) || '0.0'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-600">Cluster Factor</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {region.cluster_factor?.toFixed(2) || '1.00'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-600">Risk Level</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    {region.normalized_score >= 70 ? 'High' : 
+                     region.normalized_score >= 40 ? 'Medium' : 'Low'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -428,7 +457,7 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
                   <button
                     type="submit"
                     disabled={submittingComment || !newComment.trim()}
-                    className="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-2 px-4 py-2 bg-white text-blue-600 border-2 border-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submittingComment ? 'Posting...' : 'Post Comment'}
                   </button>

@@ -22,6 +22,8 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Users,
   MapPin,
   Activity,
@@ -74,7 +76,8 @@ const COLORS = {
   muted: '#94a3b8'
 };
 
-export default function Dashboard() {
+
+export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalIncidents: 0,
     highRiskRegions: 0,
@@ -102,16 +105,15 @@ export default function Dashboard() {
       const highRisk = regions.filter(r => r.safety_score < 40).length;
 
       setStats({
-        totalIncidents: incidentsData.total || 156, // Using dummy data
+        totalIncidents: incidents.length || 156,
         highRiskRegions: highRisk || 8,
         pendingValidations: pending || 23,
         resolvedIncidents: resolved || 89,
         validatedIncidents: validated || 124,
-        averageResponseTime: 2.4 // hours
+        averageResponseTime: 2.4
       });
     } catch (error) {
       console.error("Failed to fetch dashboard stats", error);
-      // Using dummy data on error
       setStats({
         totalIncidents: 156,
         highRiskRegions: 8,
@@ -139,7 +141,7 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="text-gray-600 font-medium">Loading dashboard analytics...</p>
         </div>
       </div>
@@ -147,7 +149,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="p-8 space-y-8">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
@@ -165,7 +167,7 @@ export default function Dashboard() {
             Refresh
           </button>
           
-          <button className="inline-flex items-center px-4 py-2 bg-white text-indigo-600 border-2 border-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors">
+          <button className="inline-flex items-center px-4 py-2 bg-white text-blue-600 border-2 border-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
             <Download className="h-4 w-4 mr-2" />
             Export Report
           </button>
@@ -416,9 +418,9 @@ function MetricCard({ title, value, change, changeType, icon, color }) {
   };
 
   const getChangeIcon = () => {
-    if (changeType === 'increase') return '↗';
-    if (changeType === 'decrease') return '↘';
-    return '→';
+    if (changeType === 'increase') return <TrendingUp className="w-3 h-3" />;
+    if (changeType === 'decrease') return <TrendingDown className="w-3 h-3" />;
+    return <Minus className="w-3 h-3" />;
   };
 
   return (
@@ -454,7 +456,7 @@ function ChartCard({ title, subtitle, children, className = '' }) {
 function ActionButton({ icon, label }) {
   return (
     <button className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group">
-      <div className="text-gray-500 group-hover:text-indigo-600 transition-colors">
+      <div className="text-gray-500 group-hover:text-blue-600 transition-colors">
         {icon}
       </div>
       <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
