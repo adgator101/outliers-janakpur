@@ -18,8 +18,10 @@ export default function Login() {
       const response = await authAPI.login(email, password);
       
       // Redirect based on user role
-      if (response.role === 'admin' || response.role === 'ngo') {
-        navigate('/dashboard');
+      if (response.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (response.role === 'ngo') {
+        navigate('/ngo/dashboard');
       } else {
         navigate('/mapbox');
       }
@@ -87,7 +89,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all hover:shadow-lg"
+              className="w-full flex justify-center py-3 px-4 border-2 border-indigo-600 rounded-lg shadow-md text-sm font-semibold text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all hover:shadow-lg"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>

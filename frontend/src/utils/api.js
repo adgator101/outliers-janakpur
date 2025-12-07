@@ -193,8 +193,8 @@ export const incidentAPI = {
     return response.json();
   },
 
-  // Validation endpoints
-  validateAdmin: async (id, validationNotes = '') => {
+  // Validation endpoints (updated for audit system)
+  validateAdmin: async (id, validationData = {}) => {
     const token = authAPI.getToken();
     const response = await fetch(`${API_BASE_URL}/incidents/${id}/validate/admin`, {
       method: 'POST',
@@ -202,7 +202,10 @@ export const incidentAPI = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ validation_notes: validationNotes }),
+      body: JSON.stringify({
+        validation_notes: validationData.notes || '',
+        s_env: validationData.s_env || 1.0 // Environmental score (0-1)
+      }),
     });
     
     if (!response.ok) {
@@ -213,7 +216,7 @@ export const incidentAPI = {
     return response.json();
   },
 
-  validateNGO: async (id, validationNotes = '') => {
+  validateNGO: async (id, validationData = {}) => {
     const token = authAPI.getToken();
     const response = await fetch(`${API_BASE_URL}/incidents/${id}/validate/ngo`, {
       method: 'POST',
@@ -221,7 +224,10 @@ export const incidentAPI = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ validation_notes: validationNotes }),
+      body: JSON.stringify({
+        validation_notes: validationData.notes || '',
+        s_env: validationData.s_env || 1.0
+      }),
     });
     
     if (!response.ok) {
