@@ -217,7 +217,7 @@ function MapboxMap() {
           </div>
           <button
             onClick={handleLogout}
-            className="bg-white/90 backdrop-blur-md shadow-lg rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95"
+            className="bg-red-600 backdrop-blur-md shadow-lg rounded-xl px-4 py-2.5 text-sm font-semibold text-white border-0 hover:bg-red-700 transition-all active:scale-95 hover:shadow-xl"
           >
             Logout
           </button>

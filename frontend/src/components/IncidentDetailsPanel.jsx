@@ -96,7 +96,7 @@ export default function IncidentDetailsPanel({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:bg-gray-200 p-2 rounded-full"
+            className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-all"
           >
             <svg
               className="w-5 h-5"

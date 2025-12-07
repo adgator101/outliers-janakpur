@@ -113,7 +113,7 @@ export default function RegionDetailsPanel({ regionId, onClose }) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-white p-6">
         <p className="text-red-600 mb-4">{error}</p>
-        <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg">
+        <button onClick={onClose} className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-all shadow-sm hover:shadow-md">
           Close
         </button>
       </div>

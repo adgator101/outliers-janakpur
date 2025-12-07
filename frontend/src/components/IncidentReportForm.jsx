@@ -80,7 +80,7 @@ export default function IncidentReportForm({ coordinates, areaType, onClose, onS
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition"
+            className="text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full p-2 transition-all"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -180,7 +180,7 @@ export default function IncidentReportForm({ coordinates, areaType, onClose, onS
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600"
+                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 hover:shadow-lg transition-all transform hover:scale-110"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -207,13 +207,13 @@ export default function IncidentReportForm({ coordinates, areaType, onClose, onS
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition"
+            className="flex-1 bg-emerald-600 text-white py-2.5 px-4 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all shadow-md hover:shadow-lg transform hover:scale-105 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
           >
             {loading ? 'Submitting...' : 'Submit Report'}
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium transition"
+            className="px-6 py-2.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50 hover:border-red-300 font-medium transition-all shadow-sm hover:shadow-md"
           >
             Cancel
           </button>

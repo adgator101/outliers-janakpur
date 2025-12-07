@@ -4,9 +4,10 @@ import MapboxMap from "./pages/MapboxMap";
 import Login from "./pages/user/Login";
 import Register from "./pages/user/Register";
 import DashboardLayout from "./components/layouts/DashboardLayout";
-import DashboardStats from "./pages/dashboard/DashboardStats";
-import DashboardMap from "./pages/dashboard/DashboardMap";
+import Dashboard from "./pages/dashboard/Dashboard";
+import MapDashboard from "./pages/dashboard/MapDashboard";
 import IncidentManagement from "./pages/dashboard/IncidentManagement";
+import DashboardMap from "./pages/dashboard/DashboardMap";
 import { authAPI } from "./utils/api";
 
 // Protected Route wrapper
@@ -30,7 +31,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-            <Route index element={<DashboardStats />} />
+            <Route index element={<Dashboard />} />
             <Route path="map" element={<DashboardMap />} />
             <Route path="incidents" element={<IncidentManagement />} />
         </Route>
