@@ -2,167 +2,72 @@
 Incident Weight Calculation Utility
 
 This module calculates the weight/impact of incidents on region safety scores.
-Weight is determined by:
-1. Base weight (very low by default)
-2. Engagement multipliers (comments, description quality, images)
-3. Validation score (admin/NGO audits - majority of impact)
 """
 
-from typing import Dict
-
+from typing import List, Tuple
+from datetime import datetime
+import math
 
 # Configuration constants
-BASE_WEIGHT = 1.0  # Default base weight for any incident
-MIN_DESCRIPTION_LENGTH = 50  # Minimum chars for "sufficient" description
-MAX_ENGAGEMENT_SCORE = 100.0
-MAX_VALIDATION_SCORE = 100.0
+ALPHA = 0.5 # Range for audit multiplier [1-alpha, 1+alpha]
+DECAY_RATE = 0.01 # Exponential decay rate per day
+MAX_SCORE_CEILING = 100.0 # For normalization
 
-# Weight multipliers for engagement factors
-COMMENT_WEIGHT = 5.0  # Points per comment
-SUFFICIENT_DESC_WEIGHT = 15.0  # Bonus for good description
-IMAGE_WEIGHT = 10.0  # Points per image
-
-# Severity multipliers
-SEVERITY_MULTIPLIERS = {
-    "low": 1.0,
-    "medium": 1.5,
-    "high": 2.5,
-    "critical": 4.0
-}
-
-
-def calculate_engagement_score(
-    comment_count: int,
-    has_sufficient_description: bool,
-    image_count: int
-) -> float:
+def calculate_auditor_credibility(verified_count: int, flagged_count: int) -> float:
     """
-    Calculate engagement score (0-100) based on user interactions.
-    
-    Args:
-        comment_count: Number of comments/discussions on incident
-        has_sufficient_description: Whether description is detailed enough
-        image_count: Number of images attached
-    
-    Returns:
-        Engagement score from 0 to 100
+    Calculate auditor credibility score (C_a).
+    C_a = verified_count / (verified_count + flagged_count + 1)
+    Minimum floor: 0.1
     """
-    score = 0.0
-    
-    # Add points for comments (max 5 comments counted)
-    score += min(comment_count * COMMENT_WEIGHT, 25.0)
-    
-    # Add points for sufficient description
-    if has_sufficient_description:
-        score += SUFFICIENT_DESC_WEIGHT
-    
-    # Add points for images (max 5 images counted)
-    score += min(image_count * IMAGE_WEIGHT, 50.0)
-    
-    # Cap at MAX_ENGAGEMENT_SCORE
-    return min(score, MAX_ENGAGEMENT_SCORE)
+    credibility = verified_count / (verified_count + flagged_count + 1)
+    return max(credibility, 0.1)
 
+def calculate_audit_multiplier(s_env: float, c_a: float) -> float:
+    """
+    Calculate audit multiplier (M_a).
+    M_a = 1 + (S_env - 0.5) * 2 * ALPHA * C_a
+    """
+    adjustment = (s_env - 0.5) * 2 * ALPHA * c_a
+    return 1.0 + adjustment
 
-def calculate_validation_score(
-    admin_validated: bool,
-    ngo_validated: bool
-) -> float:
+def calculate_time_decay(created_at: datetime) -> float:
     """
-    Calculate validation score (0-100) based on admin/NGO audits.
-    This is the primary factor in safety score calculation.
-    
-    Args:
-        admin_validated: Whether admin has validated/audited
-        ngo_validated: Whether NGO has validated/audited
-    
-    Returns:
-        Validation score from 0 to 100
+    Calculate time-decay factor D(age).
+    D(age) = e^(-lambda * age_in_days)
     """
-    score = 0.0
-    
-    # Admin validation contributes 50%
-    if admin_validated:
-        score += 50.0
-    
-    # NGO validation contributes 50%
-    if ngo_validated:
-        score += 50.0
-    
-    return score
+    age = (datetime.utcnow() - created_at).days
+    if age < 0: age = 0
+    return math.exp(-DECAY_RATE * age)
 
-
-def calculate_incident_weight(
-    severity: str,
-    comment_count: int,
-    has_sufficient_description: bool,
-    image_count: int,
-    admin_validated: bool,
-    ngo_validated: bool
-) -> Dict[str, float]:
+def calculate_region_score(incidents: List, cluster_factor: float) -> Tuple[float, float]:
     """
-    Calculate comprehensive weight for an incident.
-    
-    Returns a dict with:
-    - engagement_score: Score from user interactions (0-100)
-    - validation_score: Score from admin/NGO validation (0-100)
-    - final_weight: Combined weight considering all factors
-    
-    Weight formula:
-    base_weight * severity_multiplier * (1 + engagement_factor) * validation_factor
-    
-    Where:
-    - engagement_factor = engagement_score / 100 (max 100% boost)
-    - validation_factor = 1 + (validation_score / 100) * 4 (up to 5x multiplier)
+    Calculate region raw score and normalized score.
+    R_raw = CF(region) * sum(contrib_i)
+    R_norm = normalized R_raw
     """
-    # Calculate engagement score
-    engagement_score = calculate_engagement_score(
-        comment_count, has_sufficient_description, image_count
-    )
+    total_contribution = 0.0
+    for incident in incidents:
+        # 1. Initial Weight
+        w_initial = getattr(incident, 'initial_weight', 1.0)
+        
+        # 2. M_effective
+        audits = getattr(incident, 'audits', [])
+        if not audits:
+            m_effective = 1.0
+        else:
+            # Simplified: Average of multipliers
+            m_effective = sum(a.multiplier for a in audits) / len(audits)
+            
+        # 3. Time Decay
+        d_age = calculate_time_decay(incident.created_at)
+        
+        contrib = w_initial * m_effective * d_age
+        total_contribution += contrib
+        
+    r_raw = cluster_factor * total_contribution
     
-    # Calculate validation score
-    validation_score = calculate_validation_score(
-        admin_validated, ngo_validated
-    )
+    # Normalize (0-100)
+    # Using a ceiling approach
+    r_norm = min((r_raw / MAX_SCORE_CEILING) * 100.0, 100.0)
     
-    # Get severity multiplier
-    severity_mult = SEVERITY_MULTIPLIERS.get(severity, 1.5)
-    
-    # Calculate engagement factor (0.0 to 1.0 boost)
-    engagement_factor = engagement_score / 100.0
-    
-    # Calculate validation factor (1.0 to 5.0 multiplier)
-    # This is the major impact - validated incidents have much higher weight
-    validation_factor = 1.0 + (validation_score / 100.0) * 4.0
-    
-    # Final weight calculation
-    final_weight = (
-        BASE_WEIGHT * 
-        severity_mult * 
-        (1.0 + engagement_factor) * 
-        validation_factor
-    )
-    
-    return {
-        "engagement_score": round(engagement_score, 2),
-        "validation_score": round(validation_score, 2),
-        "base_weight": BASE_WEIGHT,
-        "final_weight": round(final_weight, 2)
-    }
-
-
-def check_description_sufficiency(description: str) -> bool:
-    """
-    Check if description is sufficiently detailed.
-    
-    Args:
-        description: The incident description text
-    
-    Returns:
-        True if description meets minimum quality standards
-    """
-    if not description:
-        return False
-    
-    # Remove extra whitespace and check length
-    cleaned = description.strip()
-    return len(cleaned) >= MIN_DESCRIPTION_LENGTH
+    return r_raw, r_norm

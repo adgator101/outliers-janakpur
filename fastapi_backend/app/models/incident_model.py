@@ -20,6 +20,16 @@ class Comment(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class Audit(BaseModel):
+    """Audit entry for an incident"""
+    auditor_id: str
+    auditor_email: str
+    s_env: float  # Weighted environmental score (0-1)
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    multiplier: float = 1.0 # The calculated multiplier for this audit
+
+
 class Incident(Document):
     """Main incident/report model"""
     user_id: str  # User who reported
@@ -49,20 +59,20 @@ class Incident(Document):
     image_count: int = 0
     engagement_score: float = 0.0  # 0-100 based on interactions
     
-    # Weight calculation (contributes to region safety score)
-    base_weight: float = 1.0  # Default low weight
-    final_weight: float = 1.0  # After applying engagement multipliers
+    # New Weight Calculation Fields
+    initial_weight: float = 1.0
+    effective_multiplier: float = 1.0
+    time_decay_factor: float = 1.0
+    contribution_score: float = 0.0 # initial_weight * effective_multiplier * time_decay_factor
     
-    # Admin/NGO validation (majority of safety score impact)
+    audits: List[Audit] = []
+    
+    # Legacy fields (kept for compatibility if needed, but logic moved to audits)
     admin_validated: bool = False
     admin_validated_by: Optional[str] = None
-    admin_validation_date: Optional[datetime] = None
-    
     ngo_validated: bool = False
     ngo_validated_by: Optional[str] = None
-    ngo_validation_date: Optional[datetime] = None
-    
-    validation_score: float = 0.0  # 0-100 based on validations
+    validation_score: float = 0.0
     validation_notes: Optional[str] = None
 
     class Settings:

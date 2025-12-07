@@ -39,7 +39,12 @@ class RegionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     
-    # Safety score breakdown
+    # New Score Fields
+    cluster_factor: float = 1.0
+    raw_score: float = 0.0
+    normalized_score: float = 0.0
+    
+    # Safety score breakdown (Legacy)
     incident_weighted_score: float = 10.0
     validation_weighted_score: float = 10.0
     total_incident_weight: float = 0.0
