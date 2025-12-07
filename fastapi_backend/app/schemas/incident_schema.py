@@ -1,0 +1,64 @@
+from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime
+
+
+class IncidentCreate(BaseModel):
+    """Schema for creating a new incident"""
+    area_type: str  # "polygon", "point", "circle"
+    coordinates: dict  # GeoJSON format
+    incident_type: str  # "gbv", "unsafe_area", "no_lights", "other"
+    description: str
+    severity: Optional[str] = "medium"
+    images: Optional[List[str]] = []
+
+
+class IncidentUpdate(BaseModel):
+    """Schema for updating an incident (admin/reviewer)"""
+    status: Optional[str] = None
+    severity: Optional[str] = None
+    alert_level: Optional[str] = None
+
+
+class CommentCreate(BaseModel):
+    """Schema for adding a comment"""
+    text: str
+
+
+class CommentResponse(BaseModel):
+    """Schema for comment response"""
+    id: str
+    user_id: str
+    user_email: str
+    text: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class IncidentResponse(BaseModel):
+    """Schema for incident response"""
+    id: str
+    user_id: str
+    user_email: str
+    area_type: str
+    coordinates: dict
+    incident_type: str
+    description: str
+    severity: str
+    status: str
+    images: List[str]
+    comments: List[CommentResponse]
+    alert_level: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class IncidentListResponse(BaseModel):
+    """Schema for listing incidents"""
+    incidents: List[IncidentResponse]
+    total: int
