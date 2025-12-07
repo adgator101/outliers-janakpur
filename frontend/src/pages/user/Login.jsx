@@ -15,8 +15,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await authAPI.login(email, password);
-      navigate('/mapbox');
+      const response = await authAPI.login(email, password);
+      
+      // Redirect based on user role
+      if (response.role === 'admin' || response.role === 'ngo') {
+        navigate('/dashboard');
+      } else {
+        navigate('/mapbox');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -55,7 +61,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-white"
                 placeholder="you@example.com"
               />
             </div>
@@ -71,7 +77,7 @@ export default function Login() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-white"
                 placeholder="••••••••"
               />
             </div>
