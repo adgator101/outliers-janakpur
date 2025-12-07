@@ -11,6 +11,7 @@ class IncidentCreate(BaseModel):
     description: str
     severity: Optional[str] = "medium"
     images: Optional[List[str]] = []
+    region_id: Optional[str] = None # Optional: if adding to existing region
 
 
 class IncidentUpdate(BaseModel):
@@ -18,6 +19,11 @@ class IncidentUpdate(BaseModel):
     status: Optional[str] = None
     severity: Optional[str] = None
     alert_level: Optional[str] = None
+
+
+class IncidentValidation(BaseModel):
+    """Schema for validating an incident (admin/NGO)"""
+    validation_notes: Optional[str] = None
 
 
 class CommentCreate(BaseModel):
@@ -51,8 +57,27 @@ class IncidentResponse(BaseModel):
     images: List[str]
     comments: List[CommentResponse]
     alert_level: str
+    region_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    
+    # Engagement metrics
+    comment_count: int = 0
+    has_sufficient_description: bool = False
+    image_count: int = 0
+    engagement_score: float = 0.0
+    
+    # Weight
+    base_weight: float = 1.0
+    final_weight: float = 1.0
+    
+    # Validation
+    admin_validated: bool = False
+    admin_validated_by: Optional[str] = None
+    ngo_validated: bool = False
+    ngo_validated_by: Optional[str] = None
+    validation_score: float = 0.0
+    validation_notes: Optional[str] = None
 
     class Config:
         from_attributes = True
