@@ -133,7 +133,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all hover:shadow-lg"
+              className="w-full flex justify-center py-3 px-4 border-2 border-emerald-600 rounded-lg shadow-md text-sm font-semibold text-emerald-600 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all hover:shadow-lg"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>

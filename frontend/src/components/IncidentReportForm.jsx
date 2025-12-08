@@ -72,7 +72,7 @@ export default function IncidentReportForm({ coordinates, areaType, onClose, onS
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-6 py-4 border-b bg-white">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Report Incident</h2>
@@ -180,7 +180,7 @@ export default function IncidentReportForm({ coordinates, areaType, onClose, onS
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 hover:shadow-lg transition-all transform hover:scale-110"
+                      className="absolute -top-2 -right-2 bg-white text-red-600 border-2 border-red-600 rounded-full p-1 shadow-md hover:bg-red-50 hover:shadow-lg transition-all transform hover:scale-110"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -207,7 +207,7 @@ export default function IncidentReportForm({ coordinates, areaType, onClose, onS
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 bg-emerald-600 text-white py-2.5 px-4 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all shadow-md hover:shadow-lg transform hover:scale-105 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            className="flex-1 bg-white text-emerald-600 border-2 border-emerald-600 py-2.5 px-4 rounded-lg hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all shadow-md hover:shadow-lg transform hover:scale-105 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
           >
             {loading ? 'Submitting...' : 'Submit Report'}
           </button>

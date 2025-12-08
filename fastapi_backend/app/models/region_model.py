@@ -28,16 +28,19 @@ class Region(Document):
     high_severity_count: int = 0  # Count of high/critical incidents
     incident_types: Dict[str, int] = {}  # {"gbv": 2, "unsafe_area": 1}
     
-    # Safety score breakdown
-    incident_weighted_score: float = 10.0  # Score from incident weights (0-10)
-    validation_weighted_score: float = 10.0  # Score from validations (0-10)
-    total_incident_weight: float = 0.0  # Sum of all incident weights
-    total_validation_weight: float = 0.0  # Sum of validation weights
-    validated_incident_count: int = 0  # Count of validated incidents
+    # New Scoring System
+    cluster_factor: float = 1.0
+    raw_score: float = 0.0
+    normalized_score: float = 0.0 # 0-100, shown in UI
     
-    # Configurable weightage (incident vs validation impact on safety score)
-    incident_weightage_percent: float = 30.0  # % of safety score from incidents
-    validation_weightage_percent: float = 70.0  # % of safety score from validations
+    # Legacy fields (kept for compatibility if needed)
+    incident_weighted_score: float = 10.0
+    validation_weighted_score: float = 10.0
+    total_incident_weight: float = 0.0
+    total_validation_weight: float = 0.0
+    validated_incident_count: int = 0
+    incident_weightage_percent: float = 30.0
+    validation_weightage_percent: float = 70.0
     
     # Discussion
     comments: List[RegionComment] = []
@@ -88,30 +91,21 @@ class Region(Document):
         """
         Recalculate aggregated statistics based on linked incidents.
         Should be called after adding/updating incidents.
-        
-        Safety Score Calculation:
-        - incident_weighted_score: Based on aggregated incident weights (30% default)
-        - validation_weighted_score: Based on admin/NGO validations (70% default)
-        - final safety_score: Weighted combination of both scores
-        
-        Score scale: 10 = safest, 0 = most dangerous
         """
         from app.models.incident_model import Incident
+        from app.utils.incident_weight import calculate_region_score
         
         incidents = await Incident.find({"region_id": str(self.id)}).to_list()
         
         self.incident_count = len(incidents)
         
         if not incidents:
-            self.safety_score = 10.0
-            self.incident_weighted_score = 10.0
-            self.validation_weighted_score = 10.0
+            self.raw_score = 0.0
+            self.normalized_score = 0.0
             self.average_severity = None
             self.high_severity_count = 0
             self.incident_types = {}
-            self.total_incident_weight = 0.0
-            self.total_validation_weight = 0.0
-            self.validated_incident_count = 0
+            self.safety_score = 10.0 # Legacy
         else:
             # Calculate severity stats
             severity_map = {"low": 1, "medium": 2, "high": 3, "critical": 4}
@@ -135,47 +129,13 @@ class Region(Document):
             for inc in incidents:
                 self.incident_types[inc.incident_type] = self.incident_types.get(inc.incident_type, 0) + 1
             
-            # Calculate aggregated incident weights
-            self.total_incident_weight = sum(inc.final_weight for inc in incidents)
-            self.total_validation_weight = sum(
-                inc.validation_score for inc in incidents if inc.admin_validated or inc.ngo_validated
-            )
-            self.validated_incident_count = sum(
-                1 for inc in incidents if inc.admin_validated or inc.ngo_validated
-            )
+            # Calculate new scores
+            self.raw_score, self.normalized_score = calculate_region_score(incidents, self.cluster_factor)
             
-            # Calculate incident-weighted score (0-10 scale)
-            # More incidents with higher weights = lower safety score
-            # Formula: 10 - min(total_weight / dampening_factor, 10)
-            dampening_factor = 5.0  # Adjust this to control sensitivity
-            incident_impact = min(self.total_incident_weight / dampening_factor, 10.0)
-            self.incident_weighted_score = max(0.0, 10.0 - incident_impact)
-            
-            # Calculate validation-weighted score (0-10 scale)
-            # More validated incidents = lower safety score (incidents are confirmed real)
-            # But validation also provides credibility to the score
-            if self.validated_incident_count > 0:
-                # Average validation impact per validated incident
-                avg_validation_impact = self.total_validation_weight / self.validated_incident_count
-                # Scale to 0-10 impact
-                validation_impact = min(
-                    (self.validated_incident_count * avg_validation_impact) / 500.0, 
-                    10.0
-                )
-                self.validation_weighted_score = max(0.0, 10.0 - validation_impact)
-            else:
-                # No validations yet - remain at neutral high score but with uncertainty
-                self.validation_weighted_score = 8.0
-            
-            # Calculate final safety score using weighted combination
-            incident_contribution = (
-                self.incident_weighted_score * (self.incident_weightage_percent / 100.0)
-            )
-            validation_contribution = (
-                self.validation_weighted_score * (self.validation_weightage_percent / 100.0)
-            )
-            
-            self.safety_score = round(incident_contribution + validation_contribution, 2)
+            # Update legacy safety_score (map normalized score 0-100 to 10-0)
+            # 0 normalized (safe) -> 10 safety score
+            # 100 normalized (unsafe) -> 0 safety score
+            self.safety_score = max(0.0, 10.0 - (self.normalized_score / 10.0))
         
         self.updated_at = datetime.utcnow()
         await self.save()

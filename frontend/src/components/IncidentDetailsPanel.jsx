@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { incidentAPI } from "../utils/api";
+import { incidentAPI, authAPI } from "../utils/api";
+import AuditForm from "./AuditForm";
 
 export default function IncidentDetailsPanel({
   incidents = [], // Array of incident objects
@@ -11,6 +12,13 @@ export default function IncidentDetailsPanel({
   const [error, setError] = useState("");
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showAuditForm, setShowAuditForm] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const role = authAPI.getUserRole();
+    setUserRole(role);
+  }, []);
 
   // Auto-select if only one incident
   useEffect(() => {
@@ -55,6 +63,20 @@ export default function IncidentDetailsPanel({
       setError(err.message);
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  const handleSubmitAudit = async (auditData) => {
+    try {
+      if (userRole === 'admin') {
+        await incidentAPI.validateAdmin(activeIncident.id, auditData);
+      } else if (userRole === 'ngo') {
+        await incidentAPI.validateNGO(activeIncident.id, auditData);
+      }
+      setShowAuditForm(false);
+      await refreshActiveIncident();
+    } catch (err) {
+      throw err; // Let AuditForm handle the error
     }
   };
 
@@ -176,7 +198,7 @@ export default function IncidentDetailsPanel({
     return (
       <div className="h-full w-full bg-white flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex justify-between items-start">
             <div className="flex-1">
               {incidents.length > 1 && (
@@ -286,6 +308,79 @@ export default function IncidentDetailsPanel({
               </div>
             )}
 
+            {/* Weight & Audit Information */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
+                Risk Assessment
+              </h3>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div>
+                  <p className="text-xs text-gray-600">Initial Weight</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {activeIncident.initial_weight?.toFixed(2) || '1.00'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Time Decay</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {activeIncident.time_decay_factor?.toFixed(2) || '1.00'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Audit Multiplier</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {activeIncident.effective_multiplier?.toFixed(2) || '1.00'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Contribution</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {activeIncident.contribution_score?.toFixed(2) || '0.00'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Audits List */}
+              {activeIncident.audits && activeIncident.audits.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <p className="text-xs font-semibold text-gray-700 mb-2">
+                    Audits ({activeIncident.audits.length})
+                  </p>
+                  <div className="space-y-2">
+                    {activeIncident.audits.map((audit, idx) => (
+                      <div key={idx} className="bg-white rounded p-2 text-xs">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-medium text-gray-900">
+                            {audit.auditor_email}
+                          </span>
+                          <span className="text-gray-500">
+                            {new Date(audit.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-gray-600">
+                          <div>S_env: <span className="font-semibold">{audit.s_env?.toFixed(2)}</span></div>
+                          <div>Multiplier: <span className="font-semibold">{audit.multiplier?.toFixed(2)}</span></div>
+                        </div>
+                        {audit.notes && (
+                          <p className="mt-1 text-gray-700">{audit.notes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Audit Button for Admin/NGO */}
+              {(userRole === 'admin' || userRole === 'ngo') && (
+                <button
+                  onClick={() => setShowAuditForm(true)}
+                  className="w-full mt-3 px-4 py-2 bg-white text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+                >
+                  Submit Audit
+                </button>
+              )}
+            </div>
+
             {/* Comments Section */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -331,12 +426,22 @@ export default function IncidentDetailsPanel({
             <button
               type="submit"
               disabled={submittingComment || !commentText.trim()}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-white text-blue-600 border-2 border-blue-600 py-3 px-4 rounded-lg font-bold hover:bg-blue-50 disabled:opacity-50"
             >
               {submittingComment ? "Posting..." : "Post Comment"}
             </button>
           </form>
         </div>
+
+        {/* Audit Form Modal */}
+        {showAuditForm && (
+          <AuditForm
+            incident={activeIncident}
+            onSubmit={handleSubmitAudit}
+            onCancel={() => setShowAuditForm(false)}
+            userRole={userRole}
+          />
+        )}
       </div>
     );
   }

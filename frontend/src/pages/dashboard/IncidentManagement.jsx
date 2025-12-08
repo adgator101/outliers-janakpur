@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { incidentAPI, authAPI } from '../../utils/api';
+import AuditForm from '../../components/AuditForm';
 import { 
   CheckCircle, 
   AlertTriangle, 
@@ -11,7 +12,10 @@ import {
   Trash2,
   Shield,
   Clock,
-  FileText
+  FileText,
+  Siren,
+  Lightbulb,
+  Construction
 } from 'lucide-react';
 
 export default function IncidentManagement() {
@@ -31,9 +35,6 @@ export default function IncidentManagement() {
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [validationType, setValidationType] = useState(null);
-  const [validationForm, setValidationForm] = useState({
-    notes: ''
-  });
 
   const fetchIncidents = async () => {
     setLoading(true);
@@ -108,33 +109,21 @@ export default function IncidentManagement() {
   const handleValidateClick = (incident, type) => {
     setSelectedIncident(incident);
     setValidationType(type);
-    setValidationForm({
-      notes: ''
-    });
     setShowValidationModal(true);
   };
 
-  const submitValidation = async () => {
-    if (!validationForm.notes.trim() || validationForm.notes.length < 20) {
-      alert("Please provide detailed validation notes (minimum 20 characters)");
-      return;
-    }
-
+  const submitValidation = async (auditData) => {
     try {
-      const validationData = {
-        validation_notes: validationForm.notes
-      };
-
       if (validationType === 'admin') {
-        await incidentAPI.validateAdmin(selectedIncident.id, JSON.stringify(validationData));
+        await incidentAPI.validateAdmin(selectedIncident.id, auditData);
       } else {
-        await incidentAPI.validateNGO(selectedIncident.id, JSON.stringify(validationData));
+        await incidentAPI.validateNGO(selectedIncident.id, auditData);
       }
       
       setShowValidationModal(false);
       fetchIncidents();
     } catch (error) {
-      alert("Validation failed: " + error.message);
+      throw error; // Let AuditForm handle error display
     }
   };
 
@@ -161,11 +150,11 @@ export default function IncidentManagement() {
 
   const getTypeIcon = (type) => {
     switch(type) {
-      case 'physical': return '🚨';
-      case 'harassment': return '⚠️';
-      case 'unsafe_area': return '🚧';
-      case 'poor_lighting': return '💡';
-      default: return '📍';
+      case 'physical': return <Siren className="h-6 w-6 text-red-500" />;
+      case 'harassment': return <AlertTriangle className="h-6 w-6 text-orange-500" />;
+      case 'unsafe_area': return <Construction className="h-6 w-6 text-yellow-500" />;
+      case 'poor_lighting': return <Lightbulb className="h-6 w-6 text-blue-500" />;
+      default: return <MapPin className="h-6 w-6 text-gray-500" />;
     }
   };
 
@@ -334,7 +323,7 @@ export default function IncidentManagement() {
                   {/* Incident Details */}
                   <td className="px-6 py-4">
                     <div className="flex items-start space-x-3">
-                      <div className="text-2xl">{getTypeIcon(incident.incident_type)}</div>
+                      <div className="flex-shrink-0">{getTypeIcon(incident.incident_type)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getSeverityColor(incident.severity)}`}>
@@ -450,7 +439,7 @@ export default function IncidentManagement() {
                       {isAdmin && !incident.admin_validated && (
                         <button 
                           onClick={() => handleValidateClick(incident, 'admin')}
-                          className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 transition-all shadow-md hover:shadow-lg"
+                          className="inline-flex items-center px-3 py-1.5 bg-white text-emerald-600 border-2 border-emerald-600 rounded-lg text-xs font-medium hover:bg-emerald-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 transition-all shadow-md hover:shadow-lg"
                         >
                           <Shield className="h-3 w-3 mr-1" />
                           Validate
@@ -461,7 +450,7 @@ export default function IncidentManagement() {
                       {isNGO && !incident.ngo_validated && (
                         <button 
                           onClick={() => handleValidateClick(incident, 'ngo')}
-                          className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all shadow-md hover:shadow-lg"
+                          className="inline-flex items-center px-3 py-1.5 bg-white text-blue-600 border-2 border-blue-600 rounded-lg text-xs font-medium hover:bg-blue-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all shadow-md hover:shadow-lg"
                         >
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Verify
@@ -469,7 +458,7 @@ export default function IncidentManagement() {
                       )}
 
                       {/* View Details */}
-                      <button className="p-1.5 text-indigo-500 hover:text-white hover:bg-indigo-600 rounded-lg transition-all shadow-sm hover:shadow-md">
+                      <button className="p-1.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border border-transparent hover:border-indigo-600 rounded-lg transition-all shadow-sm hover:shadow-md">
                         <Eye className="h-4 w-4" />
                       </button>
 
@@ -477,7 +466,7 @@ export default function IncidentManagement() {
                       {isAdmin && (
                         <button 
                           onClick={() => handleDelete(incident.id)}
-                          className="p-1.5 text-red-500 hover:text-white hover:bg-red-600 rounded-lg transition-all shadow-sm hover:shadow-md"
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-600 rounded-lg transition-all shadow-sm hover:shadow-md"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -499,115 +488,14 @@ export default function IncidentManagement() {
         )}
       </div>
 
-      {/* Enhanced Validation Modal */}
+      {/* Audit Form Modal */}
       {showValidationModal && selectedIncident && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-800/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="bg-indigo-600 px-6 py-4 text-white">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-bold">Professional Incident Validation</h3>
-                  <p className="text-indigo-100 text-sm mt-1">
-                    {validationType === 'admin' ? 'Administrative' : 'NGO'} validation for incident #{selectedIncident.id.slice(-6)}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowValidationModal(false)}
-                  className="text-white/80 hover:text-white hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center text-xl font-light leading-none transition-all"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-
-            <div className="max-h-[70vh] overflow-y-auto">
-              {/* Incident Summary */}
-              <div className="px-6 py-4 bg-gray-50 border-b">
-                <div className="flex items-start space-x-3">
-                  <div className="text-2xl">{getTypeIcon(selectedIncident.incident_type)}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(selectedIncident.severity)}`}>
-                        {selectedIncident.severity?.toUpperCase()}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {selectedIncident.incident_type.replace('_', ' ').toUpperCase()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-800 font-medium">{selectedIncident.description}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span>Reported by: {selectedIncident.user_email}</span>
-                      <span>Date: {new Date(selectedIncident.created_at).toLocaleDateString()}</span>
-                      <span>Current Impact: {selectedIncident.final_weight?.toFixed(1)}x</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Validation Form */}
-              <div className="px-6 py-6 space-y-6">
-                {/* Validation Notes */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Detailed Validation Assessment <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    value={validationForm.notes}
-                    onChange={(e) => setValidationForm(prev => ({ ...prev, notes: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-h-[120px] resize-none"
-                    placeholder="Provide comprehensive validation notes including:
-• Verification of incident details and location
-• Assessment of evidence quality and reliability  
-• Risk analysis and potential community impact
-• Recommendations for follow-up actions
-• Any additional relevant observations"
-                    required
-                  />
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-gray-500">
-                      Minimum 20 characters required for professional documentation
-                    </p>
-                    <p className={`text-xs font-medium ${validationForm.notes.length >= 20 ? 'text-green-600' : 'text-red-500'}`}>
-                      {validationForm.notes.length}/20+
-                    </p>
-                  </div>
-                </div>
-
-                {/* Impact Notice */}
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                  <div className="flex">
-                    <AlertTriangle className="h-5 w-5 text-indigo-600 mr-2 mt-0.5" />
-                    <div className="text-sm">
-                      <h4 className="font-semibold text-indigo-900 mb-1">Validation Impact</h4>
-                      <p className="text-indigo-700">
-                        {validationType === 'admin' ? 'Administrative' : 'NGO'} validation will increase this incident's 
-                        safety score impact by up to 5x, significantly affecting regional safety ratings and resource allocation.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
-              <button 
-                onClick={() => setShowValidationModal(false)}
-                className="px-6 py-2 text-gray-600 font-medium border border-gray-300 hover:bg-gray-100 hover:border-gray-400 rounded-lg transition-all shadow-sm hover:shadow-md"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={submitValidation}
-                disabled={!validationForm.notes.trim() || validationForm.notes.length < 20}
-                className="px-8 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-              >
-                Complete Validation
-              </button>
-            </div>
-          </div>
-        </div>
+        <AuditForm
+          incident={selectedIncident}
+          onSubmit={submitValidation}
+          onCancel={() => setShowValidationModal(false)}
+          userRole={validationType}
+        />
       )}
     </div>
   );
